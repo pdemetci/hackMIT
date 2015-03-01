@@ -7,6 +7,13 @@ import pygame, random, math, time
 from pygame.locals import *
 import time
 import eztext
+import glob
+import sys
+import syslog
+import serial
+import time
+
+
 
 class Robot:
     """
@@ -14,7 +21,15 @@ class Robot:
     """
     def __init__(self):
         self.motors = [1, 2, 3]
-         
+
+    def openPort(self):
+        ser = serial.Serial('/dev/ttyACM0', 9600, timeout = 1)
+        print 'Opened port' + ser.name 
+        self.port = ser
+    def closePort(self):
+        self.port.close()
+        print 'Closed port' + ser.name
+
 class Move_button(object):
     """
         When pushed generates a move object 
@@ -50,6 +65,7 @@ class Move(object):
 class Model:
     def __init__(self, robot):
         self.robot = robot
+        self.robot.openPort()
 
         #Dock/trash/run
         self.dock = pygame.Rect(120, 100, 20, 60)
@@ -68,6 +84,7 @@ class Model:
         self.instructions = sorted(self.instructions, key= lambda instr: instr.rect.x)
         for instr in self.instructions:
             print("direction: ", instr.direction, "motors: ", instr.motors, "duration: ", instr.duration)
+            self.robot.ser.write(instr.direction, instr.motor, instr.duration)
 
 class View:
     """ Draws our game in a Pygame window, the view part of our model, view, controller"""
@@ -210,3 +227,4 @@ if __name__ == '__main__':
         pygame.display.flip()
         view.draw()        
         clock.tick(60)
+        closePort()
